@@ -49,7 +49,7 @@ Options:
                                    (min.insync.replicas=2) format
   -t TEXT                          Topics list file path (one topic per line)
   -c TEXT                          Kafka client config properties to use
-  -y, --yes / -n, --no             Execute directly, don't ask.
+  -y, --yes / -n, --no             Execute directly, dont ask.
   --op [SET|DELETE|APPEND|SUBTRACT]
   -b INT                           Batch execution size
   --timeout INT                    Operation timeout in millisecond
