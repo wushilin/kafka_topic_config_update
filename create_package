@@ -1,0 +1,11 @@
+#!/bin/sh
+
+
+mkdir package
+rm -rf package/*
+gradle clean jar
+cp build/libs/*.jar package
+cp *.sh package
+cp client.properties package
+tar zcvf build/package.tar.gz package
+rm -rf package

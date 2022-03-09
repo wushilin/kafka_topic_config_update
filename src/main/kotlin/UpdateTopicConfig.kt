@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.*
 
-class Main : CliktCommand() {
+class UpdateTopicConfig : CliktCommand() {
     var allowedConfig = setOf("min.insync.replicas",
         "compression.type",
         "retention.ms",
@@ -21,7 +21,7 @@ class Main : CliktCommand() {
         "confluent.placement.constraints",
         "unclean.leader.election.enable"
     )
-    var logger = LoggerFactory.getLogger(Main::class.java)
+    var logger = LoggerFactory.getLogger(UpdateTopicConfig::class.java)
     val newConfigs: List<String> by option(
         "-m",
         help = "Modifying topic config in key=value (min.insync.replicas=2) format"
@@ -124,4 +124,4 @@ class Main : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) = Main().main(args)
+fun main(args: Array<String>) = UpdateTopicConfig().main(args)

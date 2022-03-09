@@ -20,13 +20,23 @@ class ListTopics : CliktCommand() {
         var props = EnvAwareProperties.fromPath(clientConfig)
         var admin = KafkaAdminClient.create(props)
         var topicNames = admin.listTopics().names().get()
-        File(topics).writer().use {
+        var count = 0
+        var dest = File(topics)
+        if(dest.exists()) {
+            logger.error("$topics exists, please delete it first")
+            return
+        }
+        dest.writer().use {
             topicNames.forEach {
                 next ->
                 it.write(next)
                 it.write("\n")
+                count++
+                logger.info("Found: $next ($count)")
             }
         }
+
+        logger.info("Wrote $count topics into file: $topics")
     }
 }
 
