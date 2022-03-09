@@ -1,7 +1,10 @@
-# kafka_topic_config_update
-Update kafka topics config in bulk
+# Kafka topic DYNAMIC config bulk update tool
+What it can do:
+- Make back up of topic configs
+- Update topic config in bulk
+- Supports roll back if you accidentally screwed up things.
 
-Well supported config updates: (these configs are generally safe to update).
+Well supported topic config options: (these configs are generally safe to update).
 ```
 compression.type
 retention.ms
