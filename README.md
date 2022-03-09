@@ -33,7 +33,8 @@ Or alternatively, You can download executable jar from release page.
 
 ## Getting topic list
 ```sh
-[user@host]:$ java -classpath kafka_topic_configs-1.0.0.jar ListTopicsKt -t topics.txt -c client.properties
+[user@host]:$ java -classpath kafka_topic_configs-1.0.0.jar \
+	ListTopicsKt -t topics.txt -c client.properties
 ```
 
 The above command connects to Kafka cluster specified in `client.properties`, dump all topic name into topics.txt, one per line.
@@ -57,7 +58,15 @@ Options:
 ```
 ## Applying changes
 ```sh
-[user@host]:$ java -jar kafka_topic_configs-1.0.0-release.jar -t topics.txt -c client.properties -m min.insync.replicas=1 -m compression.type=producer -y --op SET -b 300 --timeout 10000 
+[user@host]:$ java -jar kafka_topic_configs-1.0.0-release.jar \
+ 		-t topics.txt \
+		-c client.properties \
+		-m min.insync.replicas=1 \
+		-m compression.type=producer \
+		-y \
+		--op SET \
+		-b 300 \
+		--timeout 10000 
 ```
 
 The above command apply the changes: SET min.insync.replicas=1, compression.type=producer for all topics specified in topics.txt.
