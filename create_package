@@ -1,11 +1,14 @@
 #!/bin/sh
 
-
-mkdir package
-rm -rf package/*
 gradle clean jar
-cp build/libs/*.jar package
-cp *.sh package
-cp client.properties package
-tar zcvf build/package.tar.gz package
-rm -rf package
+VERSION=`cat build.gradle | grep "^version" | awk '{print $2}' | sed "s/'//g" | sed 's/"//g'`
+echo $VERSION
+PACKAGE_NAME=kafka_topic_config_update-$VERSION
+DIR=build
+PACKAGE=$DIR/$PACKAGE_NAME
+mkdir $PACKAGE
+cp build/libs/*.jar $PACKAGE
+cp *.sh $PACKAGE
+cp client.properties $PACKAGE
+tar zcvf $PACKAGE.tar.gz -C $DIR $PACKAGE_NAME
+rm -rf $PACKAGE
