@@ -40,10 +40,10 @@ When running, you need to change directory to the unzipped folder.
 ## Getting help
 
 Supported commands are:
-- get-topics.sh: It downlaods all topic names and save to a file
-- get-topic-configs.sh: It download all existing DYNAMIC config of topics and save it to a file.
-- update-topic-configs.sh: Bulk change topic config (e.g. min.insync.replicas)
-- restore-topic-configs.sh: Rollback previous change (using previously saved topic configs)
+- `get-topics.sh`: It downlaods all topic names and save to a file
+- `get-topic-configs.sh`: It download all existing DYNAMIC config of topics and save it to a file.
+- `update-topic-configs.sh`: Bulk change topic config (e.g. min.insync.replicas)
+- `restore-topic-configs.sh`: Rollback previous change (using previously saved topic configs)
 
 The right sequence should be:
 - Get a topic list using `get-topics.sh` and save to a file `topics.txt`
