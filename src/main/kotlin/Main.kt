@@ -106,7 +106,7 @@ class Main : CliktCommand() {
                     alterResult.all().get()
                     for (topic in topics) {
                         index++
-                        logger.info("Updated topic: $topic ($index of $total)")
+                        logger.info("Updated topic: $topic $opType $newConfigs ($index of $total)")
                     }
                     topics.clear()
                     alteration.clear()
