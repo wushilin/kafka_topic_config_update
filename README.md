@@ -70,9 +70,13 @@ Options:
 ```
 
 The above command apply the changes: SET min.insync.replicas=1, compression.type=producer for all topics specified in topics.txt.
+
 Connecting to the broker using properties file `client.properties`
+
 Replacing existing config if exists
+
 Using 300 topics per batch update
+
 Each update should timeout after 10 seconds.
 
 If you update any risky config, you must enable the `--take-risk` switch otherwise it won't run.
