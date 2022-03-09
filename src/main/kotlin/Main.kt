@@ -1,8 +1,11 @@
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.enum
+import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.restrictTo
 import net.wushilin.props.EnvAwareProperties
 import org.apache.kafka.clients.admin.AlterConfigOp
+import org.apache.kafka.clients.admin.AlterConfigsOptions
 import org.apache.kafka.clients.admin.ConfigEntry
 import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.apache.kafka.common.config.ConfigResource
@@ -28,13 +31,21 @@ class Main : CliktCommand() {
     val noConfirm: Boolean by option("-y", "--yes", help = "Execute directly, don't ask.")
         .flag("-n", "--no", default = false)
     val opType: AlterConfigOp.OpType by option("--op").enum<AlterConfigOp.OpType>().default(AlterConfigOp.OpType.SET)
+    val batchSize: Int by option("-b", help="Batch execution size").int().restrictTo(1..1000)
+        .default(100)
+    val timeout: Int by option("--timeout", help="Operation timeout in millisecond").int().restrictTo(1..1000000)
+        .default(60000)
+
     override fun run() {
         logger.info("Client config: $clientConfig")
         logger.info("Topic list from file: $topics")
         logger.info("New configs: ${newConfigs}")
         logger.info("Op type: ${opType}")
+        logger.info("Batch size: ${batchSize}")
+        logger.info("Timeout: $timeout ms")
         logger.info("Don't confirm before exeucting? $noConfirm")
-
+        var alterConfig = AlterConfigsOptions()
+        alterConfig.timeoutMs(timeout)
         for(next in newConfigs) {
             var index = next.indexOf("=")
             if(index == -1) {
@@ -88,9 +99,10 @@ class Main : CliktCommand() {
                 ops.add(newChange)
             }
             alteration.put(configResource, ops)
-            if (alteration.size > 1000 || count == total) {
+            if (alteration.size > batchSize || count == total) {
                 try {
-                    var alterResult = admin.incrementalAlterConfigs(alteration)
+
+                    var alterResult = admin.incrementalAlterConfigs(alteration, alterConfig)
                     alterResult.all().get()
                     for (topic in topics) {
                         index++
@@ -99,7 +111,7 @@ class Main : CliktCommand() {
                     topics.clear()
                     alteration.clear()
                 } catch (ex: Exception) {
-                    logger.error("Failed to modify ${topics}: ${ex}")
+                    ex.printStackTrace();
                     logger.info("Stopped.")
                     return
                 }
