@@ -48,7 +48,7 @@ Supported commands are:
 The right sequence should be:
 - Get a topic list using `get-topics.sh` and save to a file `topics.txt`
 - Get a topic config file backup before update using `get-topic-configs.sh` and save to a `config.txt`
-- Update topic configs (e.g. min.insync.replicas) in bulk
+- Use `update-topic-configs.sh` to update topic configs (e.g. min.insync.replicas) in bulk
 - If update was not desired, use `restore-topic-configs.sh` to restore topic config saved in `config.txt`
 
 All commands supports `--help` switch, check out the options available like this:
