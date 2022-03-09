@@ -44,7 +44,6 @@ Supported commands are:
 - get-topic-configs.sh: It download all existing DYNAMIC config of topics and save it to a file.
 - update-topic-configs.sh: Bulk change topic config (e.g. min.insync.replicas)
 - restore-topic-configs.sh: Rollback previous change (using previously saved topic configs)
-```sh
 
 The right sequence should be:
 - Get a topic list using `get-topics.sh` and save to a file `topics.txt`
