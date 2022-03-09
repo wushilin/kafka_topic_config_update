@@ -35,6 +35,7 @@ class Main : CliktCommand() {
         .default(100)
     val timeout: Int by option("--timeout", help="Operation timeout in millisecond").int().restrictTo(1..1000000)
         .default(60000)
+    val enableUnsupported: Boolean by option("--take-risk", help="Enable risky alterations").flag(default=false)
 
     override fun run() {
         logger.info("Client config: $clientConfig")
@@ -43,25 +44,28 @@ class Main : CliktCommand() {
         logger.info("Op type: ${opType}")
         logger.info("Batch size: ${batchSize}")
         logger.info("Timeout: $timeout ms")
+        logger.info("Support risky config change: $enableUnsupported")
         logger.info("Don't confirm before exeucting? $noConfirm")
         var alterConfig = AlterConfigsOptions()
         alterConfig.timeoutMs(timeout)
-        for(next in newConfigs) {
-            var index = next.indexOf("=")
-            if(index == -1) {
-                logger.error("Invalid config $next")
-                return
-            }
-            var key = next.substring(0, index)
-            var value = next.substring(index+1)
-            key = key.lowercase(Locale.getDefault())
-            if(!allowedConfig.contains(key)) {
-                logger.error("We don't support modifying $key in this program as it might be sensitive.")
-                logger.info("Supported types:")
-                for (s in allowedConfig) {
-                   logger.info(" => $s")
+        if(!enableUnsupported) {
+            for (next in newConfigs) {
+                var index = next.indexOf("=")
+                if (index == -1) {
+                    logger.error("Invalid config $next")
+                    return
                 }
-                return
+                var key = next.substring(0, index)
+                var value = next.substring(index + 1)
+                key = key.lowercase(Locale.getDefault())
+                if (!allowedConfig.contains(key)) {
+                    logger.error("We don't support modifying $key in this program as it might be sensitive.")
+                    logger.info("Supported types:")
+                    for (s in allowedConfig) {
+                        logger.info(" => $s")
+                    }
+                    return
+                }
             }
         }
         if (!noConfirm) {
