@@ -29,7 +29,7 @@ $ gradle clean jar
 
 Or alternatively, You can download a package from releases page 
 
-https://github.com/wushilin/kafka\_topic\_config\_update/releases
+https://github.com/wushilin/kafka_topic_config_update/releases
 
 After download, you need to unzip it and possibly mark them as executable.
 
