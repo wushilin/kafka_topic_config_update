@@ -128,13 +128,16 @@ $ ./update-topic-configs.sh \
 		-c client.properties \
 		-m min.insync.replicas=1 \
 		-m compression.type=producer \
+		-m confluent.placement.constraints=@@/tmp/placement.json \
 		-y \
 		--op SET \
 		-b 300 \
 		--timeout 10000 
 ```
 
-The above command apply the changes: SET min.insync.replicas=1, compression.type=producer for all topics specified in topics.txt.
+If a config value starts with @@, then the program will read the file and apply the value instead (content will be trimed).
+
+The above command apply the changes: SET min.insync.replicas=1, compression.type=producer confluent.placement.constraints = `filecontent of /tmp/placement.json` for all topics specified in topics.txt.
 
 Connecting to the broker using properties file `client.properties`
 
