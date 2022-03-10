@@ -84,6 +84,7 @@ class UpdateTopicConfig : CliktCommand() {
             it.isNotEmpty()
         }
 
+        val fileContentMap = mutableMapOf<String, String>()
         val topicISR = TreeMap<String, Int>()
         fillTopicPartitionInfo(admin, topicISR, lines)
         logger.info("Topic ISR Info:")
@@ -100,6 +101,15 @@ class UpdateTopicConfig : CliktCommand() {
                 var indexOfEq = it.indexOf("=")
                 var key = it.substring(0, indexOfEq)
                 var value = it.substring(indexOfEq + 1)
+                if(value.startsWith("@@")) {
+                    val fileName = value.substring(2)
+                    var theContent = fileContentMap[fileName]
+                    if(theContent == null) {
+                        theContent = readFile(fileName)
+                        fileContentMap[fileName] = theContent
+                    }
+                    value = theContent
+                }
                 var valid  = true
                 if("min.insync.replicas".equals(key)) {
                     var currentISR = topicISR[line] ?: 0
@@ -181,6 +191,10 @@ class UpdateTopicConfig : CliktCommand() {
             result.add(what.removeFirst())
         }
         return result
+    }
+
+    fun readFile(what:String):String {
+         return File(what).readText().trim()
     }
 }
 

@@ -27,3 +27,4 @@ build/
 .idea/
 config.txt
 topics.txt
+*.tmp
