@@ -25,3 +25,5 @@ build/
 
 .gradle/
 .idea/
+config.txt
+topics.txt

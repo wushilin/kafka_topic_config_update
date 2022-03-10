@@ -59,7 +59,7 @@ class GetTopicConfig : CliktCommand() {
 
         var linesLinked = LinkedList<String>()
         linesLinked.addAll(lines)
-        var configMap = mutableMapOf<String, List<Map<String, String>>>()
+        var configMap = TreeMap<String, List<Map<String, String>>>()
         while(true) {
             val nextBatch = batch(linesLinked, batchSize)
             if(nextBatch.isEmpty()) {
@@ -80,7 +80,7 @@ class GetTopicConfig : CliktCommand() {
             }
         }
         outFile.writer().use {
-            objectMapper.writeValue(it, configMap)
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(it, configMap)
         }
 
         println("Reading...");
@@ -89,23 +89,27 @@ class GetTopicConfig : CliktCommand() {
             mapRead.entries.forEach {
                 entry ->
                 val topic = entry.key as String
-                val configs = entry.value as ArrayList<Object>
+                @Suppress("UNCHECKED_CAST")
+                val configs = entry.value as ArrayList<Any>
                 configs.forEach {
                     nextConfigObj ->
-                    val nextConfig = nextConfigObj as Map<String, Object>
+                    @Suppress("UNCHECKED_CAST")
+                    val nextConfig = nextConfigObj as Map<String, Any>
                     val configKey = nextConfig["name"]
                     val configValue = nextConfig["value"]
                     println("Topic $topic $configKey => $configValue")
                 }
             }
         }
+
+        logger.info("Done")
     }
 
     fun filterConfig(config: Config):List<Map<String, String>> {
         var result = mutableListOf<Map<String, String>>()
         config.entries().forEach {
             if(it.source() == ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG) {
-                var map = mutableMapOf<String, String>()
+                var map = TreeMap<String, String>()
                 map["name"] = it.name()
                 map["value"] = it.value()
                 result.add(map)

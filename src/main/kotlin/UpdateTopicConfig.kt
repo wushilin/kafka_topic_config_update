@@ -4,10 +4,7 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.restrictTo
 import net.wushilin.props.EnvAwareProperties
-import org.apache.kafka.clients.admin.AlterConfigOp
-import org.apache.kafka.clients.admin.AlterConfigsOptions
-import org.apache.kafka.clients.admin.ConfigEntry
-import org.apache.kafka.clients.admin.KafkaAdminClient
+import org.apache.kafka.clients.admin.*
 import org.apache.kafka.common.config.ConfigResource
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -56,7 +53,6 @@ class UpdateTopicConfig : CliktCommand() {
                     return
                 }
                 var key = next.substring(0, index)
-                var value = next.substring(index + 1)
                 key = key.lowercase(Locale.getDefault())
                 if (!allowedConfig.contains(key)) {
                     logger.error("We don't support modifying $key in this program as it might be sensitive.")
@@ -80,7 +76,6 @@ class UpdateTopicConfig : CliktCommand() {
         var admin = KafkaAdminClient.create(props)
         var file = File(topics)
         var alteration = mutableMapOf<ConfigResource, Collection<AlterConfigOp>>()
-        var topics = mutableListOf<String>()
         var count = 0
         var lines = file.readLines()
         lines = lines.map { line ->
@@ -88,31 +83,57 @@ class UpdateTopicConfig : CliktCommand() {
         }.filter {
             it.isNotEmpty()
         }
+
+        val topicISR = TreeMap<String, Int>()
+        fillTopicPartitionInfo(admin, topicISR, lines)
+        logger.info("Topic ISR Info:")
+        topicISR.entries.forEach {
+            logger.info("   Topic ${it.key} ISR = ${it.value}")
+        }
         var total = lines.size
         var index = 0
         lines.forEach { line ->
             count++
-            topics.add(line)
             var configResource = ConfigResource(ConfigResource.Type.TOPIC, line)
             var ops = mutableListOf<AlterConfigOp>()
             newConfigs.forEach {
-                var index = it.indexOf("=")
-                var key = it.substring(0, index)
-                var value = it.substring(index + 1)
-                var newChange = AlterConfigOp(ConfigEntry(key, value), opType)
-                ops.add(newChange)
+                var indexOfEq = it.indexOf("=")
+                var key = it.substring(0, indexOfEq)
+                var value = it.substring(indexOfEq + 1)
+                var valid  = true
+                if("min.insync.replicas".equals(key)) {
+                    var currentISR = topicISR[line] ?: 0
+                    var newMIR = Integer.parseInt(value)
+                    if(currentISR < newMIR) {
+                        if(!enableUnsupported) {
+                            logger.info("Topic $line current ISR $currentISR < new MIR $newMIR, not applying.")
+                            valid = false
+                        } else {
+                            logger.info("Topic $line current ISR $currentISR < new MIR $newMIR, but you asked for it.")
+                        }
+                    }
+                }
+
+                if(valid) {
+                    var newChange = AlterConfigOp(ConfigEntry(key, value), opType)
+                    ops.add(newChange)
+                }
             }
-            alteration.put(configResource, ops)
+            if(ops.size > 0) {
+                alteration.put(configResource, ops)
+            }
             if (alteration.size > batchSize || count == total) {
                 try {
 
                     var alterResult = admin.incrementalAlterConfigs(alteration, alterConfig)
                     alterResult.all().get()
-                    for (topic in topics) {
+                    var appliedTopics = alteration.keys.map {
+                        it.name()
+                    }
+                    for (topic in appliedTopics) {
                         index++
                         logger.info("Updated topic: $topic $opType $newConfigs ($index of $total)")
                     }
-                    topics.clear()
                     alteration.clear()
                 } catch (ex: Exception) {
                     ex.printStackTrace();
@@ -121,6 +142,45 @@ class UpdateTopicConfig : CliktCommand() {
                 }
             }
         }
+        logger.info("Done")
+    }
+
+    private fun fillTopicPartitionInfo(admin: AdminClient, topicISR: MutableMap<String, Int>, lines: List<String>) {
+        val newList = mutableListOf<String>()
+        newList.addAll(lines)
+        while(true) {
+            val nextBatch = extract(newList, batchSize)
+            if(nextBatch.isEmpty()) {
+                break
+            }
+            val describeResult = admin.describeTopics(nextBatch).all().get()
+            describeResult.entries.forEach {
+                val topic = it.key
+                val value = it.value
+                var isr = -1;
+                try {
+                    var partitions = value.partitions()
+                    for (partition in partitions) {
+                        var thisCount = (partition.isr()?.size) ?: 0
+                        if(thisCount < isr || isr == -1) {
+                            isr = thisCount
+                        }
+                    }
+                } catch(ex:Exception) {
+                    ex.printStackTrace()
+                }
+
+                topicISR[topic] = isr
+            }
+        }
+    }
+
+    fun <T> extract (what: MutableList<T>, limit:Int): List<T> {
+        val result = mutableListOf<T>()
+        while(what.isNotEmpty() && result.size < limit) {
+            result.add(what.removeFirst())
+        }
+        return result
     }
 }
 

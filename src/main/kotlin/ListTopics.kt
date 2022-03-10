@@ -8,6 +8,7 @@ import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.apache.kafka.common.config.ConfigResource
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.util.*
 
 class ListTopics : CliktCommand() {
     var logger = LoggerFactory.getLogger(ListTopics::class.java)
@@ -26,8 +27,10 @@ class ListTopics : CliktCommand() {
             logger.error("$topics exists, please delete it first")
             return
         }
+        var sortedSet = TreeSet<String>()
+        sortedSet.addAll(topicNames)
         dest.writer().use {
-            topicNames.forEach {
+            sortedSet.forEach {
                 next ->
                 it.write(next)
                 it.write("\n")
@@ -37,6 +40,7 @@ class ListTopics : CliktCommand() {
         }
 
         logger.info("Wrote $count topics into file: $topics")
+        logger.info("Done")
     }
 }
 
