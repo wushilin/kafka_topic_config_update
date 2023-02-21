@@ -163,7 +163,7 @@ class UpdateTopicConfig : CliktCommand() {
             if(nextBatch.isEmpty()) {
                 break
             }
-            val describeResult = admin.describeTopics(nextBatch).all().get()
+            val describeResult = admin.describeTopics(nextBatch).allTopicNames().get()
             describeResult.entries.forEach {
                 val topic = it.key
                 val value = it.value

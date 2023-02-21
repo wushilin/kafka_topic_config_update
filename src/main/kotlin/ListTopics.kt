@@ -5,6 +5,7 @@ import net.wushilin.props.EnvAwareProperties
 import org.apache.kafka.clients.admin.AlterConfigOp
 import org.apache.kafka.clients.admin.ConfigEntry
 import org.apache.kafka.clients.admin.KafkaAdminClient
+import org.apache.kafka.clients.admin.ListTopicsOptions
 import org.apache.kafka.common.config.ConfigResource
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -20,7 +21,8 @@ class ListTopics : CliktCommand() {
 
         var props = EnvAwareProperties.fromPath(clientConfig)
         var admin = KafkaAdminClient.create(props)
-        var topicNames = admin.listTopics().names().get()
+        var listOptions = ListTopicsOptions().listInternal(true).timeoutMs(60000)
+        var topicNames = admin.listTopics(listOptions).names().get()
         var count = 0
         var dest = File(topics)
         if(dest.exists()) {
